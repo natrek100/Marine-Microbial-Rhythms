@@ -38,7 +38,7 @@ yearly_abundance <- abundance %>%
 yearly_abundance <- yearly_abundance %>%
   mutate(across(-1, ~ round(.x, digits = 2)))
 
-#Part 2: The ratio based on kingdom - per count and percentage
+#Part 2: The ratio based on domain - per count and percentage
 
 
 ### The count ratio ###
@@ -48,7 +48,7 @@ yearly_abundance <- yearly_abundance %>%
 ASV_presence <- yearly_abundance %>%
   mutate(across(-year, ~ ifelse(. > 0, 1, 0)))
 
-#divide ASV_abundance per kingdom, and sum the ASVs presence
+#divide ASV_abundance per domain, and sum the ASVs presence
 
 euk_count <- ASV_presence %>%
   dplyr::select(year, starts_with("Euk")) %>% # Explicitly use dplyr::select
@@ -76,23 +76,23 @@ ASV_count <- euk_count %>%
 
 long_format_asv_counts <- ASV_count %>%
   pivot_longer(cols = c(euk_presence, bac_presence, arc_presence),
-               names_to = "Kingdom", values_to = "ASV_count" )
+               names_to = "Domain", values_to = "ASV_count" )
 
 
 
 
-# Create the bar plot. Black outline, kingdom bars stacked for each year, coloured, with counts inside of them. The grid in gray.
-ggplot(long_format_asv_counts, aes(x = factor(year), y = ASV_count, fill = Kingdom)) +
+# Create the bar plot. Black outline, domain bars stacked for each year, coloured, with counts inside of them. The grid in gray.
+ggplot(long_format_asv_counts, aes(x = factor(year), y = ASV_count, fill = Domain)) +
   geom_bar(stat = "identity", position = "stack", color = "black", linewidth = 0.6) +  #black outline
   geom_text(aes(label = ASV_count),  
             position = position_stack(vjust = 0.5),  #stacking
             color = "white", size = 5, fontface = "bold") + #white counts inside bars
-  labs(title = "Number of ASVs Present Per Year by Kingdom", 
+  labs(title = "Number of ASVs Present Per Year by Domain", 
        x = "Year", y = "ASV Count") +
   scale_fill_manual(values = c("euk_presence" = "#1f77b4",  
                                "bac_presence" = "#2ca02c", 
                                "arc_presence" = "#d62728"),
-                    labels = c("Archaea", "Bacteria", "Eukaryota")) +  #bar colors based on kingdom
+                    labels = c("Archaea", "Bacteria", "Eukaryota")) +  #bar colors based on domains
   theme_minimal(base_size = 18) +  
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold", size = 20),  
@@ -135,16 +135,16 @@ print(ASV_count_percent)
 #"reshape" to long format
 percentage_long <- ASV_count_percent %>%
   pivot_longer(cols = c(perc_euk, perc_bac, perc_arc),
-               names_to = "Kingdom", values_to = "percentage" ) %>%
-  select(year, Kingdom, percentage, total)
+               names_to = "Domain", values_to = "percentage" ) %>%
+  select(year, Domain, percentage, total)
 
 #visualize using a barplot, same design as previously.
-ggplot(percentage_long, aes(x = factor(year), y = percentage, fill = Kingdom)) +
+ggplot(percentage_long, aes(x = factor(year), y = percentage, fill = Domain)) +
   geom_bar(stat = "identity", position = "stack", color = "black", linewidth = 0.6) +  
   geom_text(aes(label = round(percentage, 1)),  
             position = position_stack(vjust = 0.5), 
             color = "white", size = 5, fontface = "bold") + 
-  labs(title = "Percentage of ASVs Present Per Year by Kingdom", 
+  labs(title = "Percentage of ASVs Present Per Year by Domain", 
        x = "Year", y = "Percentage (%)") +  
   scale_fill_manual(values = c("perc_euk" = "#1f77b4", 
                                "perc_bac" = "#2ca02c", 
@@ -171,9 +171,6 @@ ggplot(percentage_long, aes(x = factor(year), y = percentage, fill = Kingdom)) +
 #firstly let's transform the yearly_abundance into long format
 long_format <- yearly_abundance %>%
   pivot_longer(-year, names_to = "ASV", values_to = "Abundance")
-
-
-#Now the same things, but for phyla, so we need to sum the abundances based on their class first
 
 #add taxa_info to long format data
 
@@ -230,7 +227,7 @@ ggplot(top_5_and_remaining, aes(x = factor(year), y = Percentage, fill = Phylum)
   scale_fill_manual(values = phyla_colors) +  
   geom_text(aes(label = sprintf("%.1f%%", Percentage)), 
             position = position_stack(vjust = 0.5), 
-            color = "white", size = 3, fontface = "bold") + 
+            color = "white", size = 5, fontface = "bold") + 
   labs(x = "Year", y = "Percentage of Total Abundance", 
        title = "Top 5 Phyla by Relative Abundance for Each Year", 
        fill = "Phylum") +  
