@@ -266,7 +266,7 @@ alpha_div <- long_format_div %>%
   group_by(year) %>%
   summarise(
     # Number of unique ASVs (species richness)
-    Sprichness = sum(Abundance > 0),  # Count of ASVs with non-zero abundance (just as previously)
+    Sprichness = sum(Abundance > 0),  # Count of ASVs with non-zero abundance
     
     # Calculate total abundance for the year to use for diversity calculations
     total_abundance = sum(Abundance), 
@@ -277,9 +277,14 @@ alpha_div <- long_format_div %>%
     # Simpson index
     Simpson = 1 - sum((Abundance / total_abundance) ^ 2, na.rm = TRUE), 
     
-    #Chao1
-    Chao = chao1(Abundance)
-  )
+    # Chao1
+    Chao = chao1(Abundance),
+    
+    # Maximum Shannon index (log(S), where S is the number of unique ASVs)
+    max_Shannon = log(Sprichness)
+  ) %>%
+  # Add a normalized Shannon value
+  mutate(shannon_normalized = Shannon / max_Shannon)
 
 
 # Display the results
@@ -297,9 +302,9 @@ div_colors <- c("2007" = "#FF6F61",  # Year 2007
                   "2015" = "#D32F2F")  # Year 2015
 
 #Shannon bar plot
-shannon <- ggplot(alpha_div, aes(x = year, y = Shannon, fill = year)) +
+shannon <- ggplot(alpha_div, aes(x = year, y = shannon_normalized, fill = year)) +
   geom_bar(stat = "identity", position = "stack", color = "black", linewidth = 0.5) +  
-  geom_text(aes(label = round(Shannon, 2)),  
+  geom_text(aes(label = round(shannon_normalized, 2)),  
             position = position_stack(vjust = 0.5),  
             color = "white", size = 6, fontface = "bold") + 
   labs(y = "Shannon Entropy") +
@@ -795,6 +800,8 @@ ggplot(betweenness_long_all, aes(x = factor(Year_from),
 CCM_split_yearly_igraph <- CCM_split %>% select("Year_from", "Year_to")
 par(cex = 1)
 graph_ccm_yearly <- graph_from_data_frame(CCM_split_yearly_igraph, directed = TRUE)
+vcount(graph_ccm_yearly)
+ecount(graph_ccm_yearly)
 
 #calculate closeness centrality for the yearly network
 closeness_values <- closeness(graph_ccm_yearly)
